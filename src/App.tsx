@@ -6,15 +6,11 @@ import {
   InputGroup,
   InputLeftElement,
   Button,
-  useDisclosure,
-  useToast,
   useColorMode,
 } from "@chakra-ui/react";
 import { Icon, IconProps } from "@chakra-ui/icons";
 import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import { Colorbar } from "./Colorbar";
-import { getPalette } from "./getPalette";
-import { ColorHeader } from "./ColorHeader";
 
 function App() {
   const { colorMode } = useColorMode();
@@ -23,8 +19,6 @@ function App() {
   const [previewColor, setPreviewColor] = useState(bgColor[colorMode]);
   const [currentColor, setCurrentColor] = useState<string | undefined>();
   const [colors, setColors] = useState<any>([]);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const toast = useToast();
 
   useEffect(() => {
     const bgColor = { light: "white", dark: "gray.800" };
@@ -44,56 +38,11 @@ function App() {
   const handleAddColor = () => {
     if (currentColor) {
       const hex = currentColor.replace(/#/g, "");
-      const palette = getPalette(hex);
-      setColors((prev: any) => [palette, ...prev]);
+      setColors((prev: any) => [hex, ...prev]);
       setInputValue("");
       const bgColor = { light: "white", dark: "gray.800" };
       setPreviewColor(bgColor[colorMode]);
     }
-  };
-
-  const handleCopy = (str: any) => {
-    navigator.clipboard.writeText(str);
-    toast({
-      duration: 2000,
-      position: "bottom",
-      render: () => (
-        <Box
-          color="white"
-          bgColor="blue.500"
-          fontWeight="semibold"
-          borderRadius="md"
-          p={2}
-        >
-          Copied!
-        </Box>
-      ),
-    });
-  };
-
-  const handleView = () => {
-    onOpen();
-  };
-
-  const handleDelete = (color: any) => {
-    setColors((prev: any) => [
-      ...prev.filter((entry: any) => entry.name !== color.name),
-    ]);
-    toast({
-      duration: 2000,
-      position: "bottom",
-      render: () => (
-        <Box
-          color="white"
-          bgColor="blue.500"
-          fontWeight="semibold"
-          borderRadius="md"
-          p={2}
-        >
-          Deleted.
-        </Box>
-      ),
-    });
   };
 
   const CircleIcon: React.FC<IconProps> = (props) => (
@@ -145,19 +94,8 @@ function App() {
           </Button>
         </Flex>
         <Box mt={10}>
-          {colors.length > 0 ? <ColorHeader /> : null}
           {colors.length > 0
-            ? colors.map((color: any) => (
-                <Colorbar
-                  key={color}
-                  color={color}
-                  handleCopy={handleCopy}
-                  handleView={handleView}
-                  handleDelete={handleDelete}
-                  isOpen={isOpen}
-                  onClose={onClose}
-                />
-              ))
+            ? colors.map((color: any) => <Colorbar key={color} color={color} />)
             : null}
         </Box>
       </Flex>
