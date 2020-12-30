@@ -45,6 +45,10 @@ function App() {
     }
   };
 
+  const handleDelete = (color: any) => {
+    setColors((prev: any) => [...prev.filter((entry: any) => entry !== color)]);
+  };
+
   const CircleIcon: React.FC<IconProps> = (props) => (
     <Icon viewBox="0 0 200 200" {...props}>
       <path
@@ -95,7 +99,13 @@ function App() {
         </Flex>
         <Box mt={10}>
           {colors.length > 0
-            ? colors.map((color: any) => <Colorbar key={color} color={color} />)
+            ? colors.map((color: any) => (
+                <Colorbar
+                  key={color}
+                  color={color}
+                  handleDelete={handleDelete}
+                />
+              ))
             : null}
         </Box>
       </Flex>
