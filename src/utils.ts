@@ -1,3 +1,5 @@
+import namer from "color-namer";
+
 const RGB_MAX: any = 255;
 const HUE_MAX: any = 360;
 const SV_MAX: any = 100;
@@ -209,4 +211,23 @@ export const hexToLightness = (hex: any) => {
   const max = Math.max(r, g, b);
   const lightness = ((min + max) / 2) * 100;
   return lightness;
+};
+
+export const hexArrToPalette = (hexArr: any) => {
+  const keys = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+  const entries = keys.map((value, index) => [value, hexArr[index]]);
+  const base = hexArr[5];
+  const name = namer(base).pantone[0].name.toLowerCase().replace(/\s/g, "-");
+  const hsl = hexArr.map((value: any) => hexToHsl(value));
+  const hsv = hexArr.map((value: any) => hexToHsv(value));
+  return {
+    name: name,
+    base: base,
+    values: hexArr,
+    palette: {
+      [name]: Object.fromEntries(entries),
+    },
+    hsl: hsl,
+    hsv: hsv,
+  };
 };
