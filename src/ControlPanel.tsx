@@ -66,8 +66,18 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
   };
 
   useEffect(() => {
-    handleReset();
-  }, [colorspace]);
+    setIsReset((prev) => !prev);
+    const resetValues = [
+      palette[colorspace].map((value: any, index: any) => [
+        index,
+        value[0] / 3.6,
+      ]),
+      palette[colorspace].map((value: any, index: any) => [index, value[1]]),
+      palette[colorspace].map((value: any, index: any) => [index, value[2]]),
+    ];
+    data.current = resetValues;
+    setValues(toTriple(resetValues, colorspace));
+  }, [colorspace, palette]);
 
   useEffect(() => {
     const margin = { top: 40, right: 40, bottom: 40, left: 40 };
