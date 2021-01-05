@@ -66,6 +66,10 @@ export const Colorbar: React.FC<Props> = ({ color, handleDelete }) => {
     });
   };
 
+  const handleUpdate = (newPalette: any) => {
+    setPalette(newPalette);
+  };
+
   if (palette) {
     return (
       <Box>
@@ -114,7 +118,7 @@ export const Colorbar: React.FC<Props> = ({ color, handleDelete }) => {
           />
         </Flex>
         <Collapse in={isControlsOpen} animateOpacity>
-          <ControlPanel palette={palette} />
+          <ControlPanel palette={palette} handleUpdate={handleUpdate} />
         </Collapse>
       </Box>
     );

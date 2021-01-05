@@ -9,13 +9,14 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import * as d3 from "d3";
-import { hslToHex, hsvToHex } from "./utils";
+import { hslToHex, hsvToHex, hexArrToPalette } from "./utils";
 
 interface Props {
   palette: any;
+  handleUpdate: (palette: any) => void;
 }
 
-export const ControlPanel: React.FC<Props> = ({ palette }) => {
+export const ControlPanel: React.FC<Props> = ({ palette, handleUpdate }) => {
   const svgRef = useRef(null);
   const [viewportWidth, viewportHeight] = [1100, 600];
   const svgWidth = viewportWidth * 0.8;
@@ -63,6 +64,11 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
     ];
     data.current = resetValues;
     setValues(toTriple(resetValues, colorspace));
+  };
+
+  const handleSave = () => {
+    const newPalette = hexArrToPalette(values);
+    handleUpdate(newPalette);
   };
 
   useEffect(() => {
@@ -270,7 +276,7 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
               <Radio value="hsv">hsv</Radio>
             </Stack>
           </RadioGroup>
-          <Button ml={4} colorScheme="blue">
+          <Button ml={4} colorScheme="blue" onClick={handleSave}>
             save
           </Button>
           <Button ml={4} colorScheme="blue" onClick={handleReset}>
