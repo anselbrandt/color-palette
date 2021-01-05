@@ -16,7 +16,6 @@ interface Props {
 }
 
 export const ControlPanel: React.FC<Props> = ({ palette }) => {
-  const [localPalette] = useState(palette);
   const svgRef = useRef(null);
   const [viewportWidth, viewportHeight] = [1100, 600];
   const svgWidth = viewportWidth * 0.8;
@@ -27,25 +26,48 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
   const [colorspace, setColorspace] = useState<any>("hsl");
 
   const data = useRef([
-    localPalette[colorspace].map((value: any, index: any) => [
+    palette[colorspace].map((value: any, index: any) => [
       index,
       value[0] / 3.6,
     ]),
-    localPalette[colorspace].map((value: any, index: any) => [index, value[1]]),
-    localPalette[colorspace].map((value: any, index: any) => [index, value[2]]),
+    palette[colorspace].map((value: any, index: any) => [index, value[1]]),
+    palette[colorspace].map((value: any, index: any) => [index, value[2]]),
   ]);
 
   const selected = useRef<any | null>(null);
 
-  const toTriple = (arr: any) => {
+  const toTriple = (arr: any, colorspace: any) => {
     const values = arr.map((row: any) => row.map((column: any) => column[1]));
-    const flat = values[0].map((value: any, index: any) =>
-      hslToHex([value * 3.6, values[1][index], values[2][index]])
-    );
+    const flat = values[0].map((value: any, index: any) => {
+      if (colorspace === "hsl") {
+        return hslToHex([value * 3.6, values[1][index], values[2][index]]);
+      } else {
+        return hsvToHex([value * 3.6, values[1][index], values[2][index]]);
+      }
+    });
     return flat;
   };
 
-  const [values, setValues] = useState(toTriple(data.current));
+  const [values, setValues] = useState(toTriple(data.current, colorspace));
+  const [isReset, setIsReset] = useState<boolean>(false);
+
+  const handleReset = () => {
+    setIsReset((prev) => !prev);
+    const resetValues = [
+      palette[colorspace].map((value: any, index: any) => [
+        index,
+        value[0] / 3.6,
+      ]),
+      palette[colorspace].map((value: any, index: any) => [index, value[1]]),
+      palette[colorspace].map((value: any, index: any) => [index, value[2]]),
+    ];
+    data.current = resetValues;
+    setValues(toTriple(resetValues, colorspace));
+  };
+
+  useEffect(() => {
+    handleReset();
+  }, [colorspace]);
 
   useEffect(() => {
     const margin = { top: 40, right: 40, bottom: 40, left: 40 };
@@ -158,11 +180,7 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
                 } else return datum;
               });
               data.current = newData;
-              // const newValues = newData.map((datum) =>
-              //   datum.map((value: any) => value[1])
-              // );
-              // setValues(newValues);
-              setValues(toTriple(newData));
+              setValues(toTriple(newData, colorspace));
               chartContent.select(".line" + selected.current[0]).remove();
               chartContent
                 .append("path")
@@ -213,7 +231,7 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
       };
       chart();
     }
-  }, [svgHeight, svgWidth]);
+  }, [svgHeight, svgWidth, colorspace, isReset]);
 
   return (
     <Box
@@ -245,7 +263,7 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
           <Button ml={4} colorScheme="blue">
             save
           </Button>
-          <Button ml={4} colorScheme="blue">
+          <Button ml={4} colorScheme="blue" onClick={handleReset}>
             reset
           </Button>
         </Flex>
