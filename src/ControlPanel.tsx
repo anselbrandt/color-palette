@@ -14,10 +14,15 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
   const svgHeight = viewportHeight * 0.7;
 
   const data = useRef([
-    localPalette.hsv.map((value: any, index: any) => [index, value[2]]),
-    localPalette.hsv.map((value: any, index: any) => [index, value[1]]),
-    localPalette.hsv.map((value: any, index: any) => [index, value[0] / 3.6]),
+    localPalette.hsl.map((value: any, index: any) => [index, value[2]]),
+    localPalette.hsl.map((value: any, index: any) => [index, value[1]]),
+    localPalette.hsl.map((value: any, index: any) => [index, value[0] / 3.6]),
   ]);
+
+  const selected = useRef<any | null>(null);
+  const [values, setValues] = useState(
+    data.current.map((datum) => datum.map((value: any) => value[1]))
+  );
 
   useEffect(() => {
     const margin = { top: 40, right: 40, bottom: 40, left: 40 };
@@ -81,6 +86,101 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1.5)
             .attr("d", line as any);
+
+          // dots
+          chartContent
+            .selectAll(".dot" + index)
+            .data(datum)
+            .enter()
+            .append("circle")
+            .attr("class", "dot" + index)
+            .style("fill", "steelblue")
+            .attr("r", 5)
+            .attr("cx", function (d: any) {
+              return xScale(d[0]);
+            })
+            .attr("cy", function (d: any) {
+              return yScale(d[1]);
+            });
+
+          const dragstarted = (event: any) => {
+            if (event.cancelable) {
+              event.preventDefault();
+            }
+            d3.select(this as any)
+              .raise()
+              .classed("active", true);
+            const dotCoords = event.subject;
+            data.current.forEach((datum, row) => {
+              if (datum.includes(dotCoords)) {
+                const col = datum.indexOf(dotCoords);
+                selected.current = [row, col];
+              }
+            });
+          };
+
+          const dragged = (event: any) => {
+            if (event.cancelable) {
+              event.preventDefault();
+            }
+            const yVal = yScale.invert(event.y);
+            if (Math.sign(event.y) !== -1 && event.y < height) {
+              const newData = data.current.map((datum, index) => {
+                if (index === selected.current[0]) {
+                  return datum.map((value: any, index: any) => {
+                    if (index === selected.current[1]) {
+                      return [value[0], yVal];
+                    } else return value;
+                  });
+                } else return datum;
+              });
+              data.current = newData;
+              const newValues = newData.map((datum) =>
+                datum.map((value: any) => value[1])
+              );
+              setValues(newValues);
+              chartContent.select(".line" + selected.current[0]).remove();
+              chartContent
+                .append("path")
+                .datum(newData[selected.current[0]])
+                .attr("class", "line" + selected.current[0])
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-linecap", "round")
+                .attr("stroke-width", 1.5)
+                .attr("d", line);
+              chartContent.selectAll(".dot" + selected.current[0]).remove();
+              chartContent
+                .selectAll(".dot" + selected.current[0])
+                .data(newData[selected.current[0]])
+                .enter()
+                .append("circle")
+                .attr("class", "dot" + selected.current[0])
+                .style("fill", "steelblue")
+                .attr("r", 5)
+                .attr("cx", function (d: any) {
+                  return xScale(d[0]);
+                })
+                .attr("cy", function (d: any) {
+                  return yScale(d[1]);
+                })
+                .call(drag as any);
+            }
+          };
+
+          const dragended = (event: any) => {
+            if (event.cancelable) {
+              event.preventDefault();
+            }
+          };
+
+          const drag = d3
+            .drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended);
+          chartContent.selectAll("circle").call(drag as any);
         });
 
         chartContent.on("contextmenu", (event) => {

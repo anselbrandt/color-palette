@@ -11,6 +11,11 @@ code {
     monospace;
 }
 
+[class^="dot"] {
+  cursor: move;
+  fill: steelblue;
+}
+
 [class] {
   outline: 1px solid transparent;
 }
