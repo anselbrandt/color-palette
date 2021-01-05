@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Flex } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Radio,
+  RadioGroup,
+  Stack,
+  Button,
+  useColorMode,
+} from "@chakra-ui/react";
 import * as d3 from "d3";
+import { hslToHex, hsvToHex } from "./utils";
 
 interface Props {
   palette: any;
@@ -12,17 +21,31 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
   const [viewportWidth, viewportHeight] = [1100, 600];
   const svgWidth = viewportWidth * 0.8;
   const svgHeight = viewportHeight * 0.7;
+  const { colorMode } = useColorMode();
+  const bgColor = { light: "gray.100", dark: "gray.700" };
+
+  const [colorspace, setColorspace] = useState<any>("hsl");
 
   const data = useRef([
-    localPalette.hsl.map((value: any, index: any) => [index, value[2]]),
-    localPalette.hsl.map((value: any, index: any) => [index, value[1]]),
-    localPalette.hsl.map((value: any, index: any) => [index, value[0] / 3.6]),
+    localPalette[colorspace].map((value: any, index: any) => [
+      index,
+      value[0] / 3.6,
+    ]),
+    localPalette[colorspace].map((value: any, index: any) => [index, value[1]]),
+    localPalette[colorspace].map((value: any, index: any) => [index, value[2]]),
   ]);
 
   const selected = useRef<any | null>(null);
-  const [values, setValues] = useState(
-    data.current.map((datum) => datum.map((value: any) => value[1]))
-  );
+
+  const toTriple = (arr: any) => {
+    const values = arr.map((row: any) => row.map((column: any) => column[1]));
+    const flat = values[0].map((value: any, index: any) =>
+      hslToHex([value * 3.6, values[1][index], values[2][index]])
+    );
+    return flat;
+  };
+
+  const [values, setValues] = useState(toTriple(data.current));
 
   useEffect(() => {
     const margin = { top: 40, right: 40, bottom: 40, left: 40 };
@@ -135,10 +158,11 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
                 } else return datum;
               });
               data.current = newData;
-              const newValues = newData.map((datum) =>
-                datum.map((value: any) => value[1])
-              );
-              setValues(newValues);
+              // const newValues = newData.map((datum) =>
+              //   datum.map((value: any) => value[1])
+              // );
+              // setValues(newValues);
+              setValues(toTriple(newData));
               chartContent.select(".line" + selected.current[0]).remove();
               chartContent
                 .append("path")
@@ -192,10 +216,16 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
   }, [svgHeight, svgWidth]);
 
   return (
-    <Box h="500px" w="900px" bgColor="gray.100" borderRadius="lg" ml={90}>
+    <Box
+      h="525px"
+      w="900px"
+      bgColor={bgColor[colorMode]}
+      borderRadius="lg"
+      ml={90}
+    >
       <Flex direction="column" alignItems="center" h="100%" w="100%">
         <Flex>
-          {localPalette.values.map((value: string, index: any) => (
+          {values.map((value: string, index: any) => (
             <Box key={index} bgColor={value} w="90px" h="40px" fontSize="xs" />
           ))}
         </Flex>
@@ -205,6 +235,20 @@ export const ControlPanel: React.FC<Props> = ({ palette }) => {
             <g className="yAxis" />
           </svg>
         </Box>
+        <Flex justifyContent="flex-end" alignItems="center">
+          <RadioGroup onChange={setColorspace} value={colorspace}>
+            <Stack direction="row">
+              <Radio value="hsl">hsl</Radio>
+              <Radio value="hsv">hsv</Radio>
+            </Stack>
+          </RadioGroup>
+          <Button ml={4} colorScheme="blue">
+            save
+          </Button>
+          <Button ml={4} colorScheme="blue">
+            reset
+          </Button>
+        </Flex>
       </Flex>
     </Box>
   );
