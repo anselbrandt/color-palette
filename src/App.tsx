@@ -7,6 +7,7 @@ import {
   InputLeftElement,
   Button,
   useColorMode,
+  Link,
 } from "@chakra-ui/react";
 import { Icon, IconProps } from "@chakra-ui/icons";
 import { ColorModeSwitcher } from "./ColorModeSwitcher";
@@ -98,6 +99,21 @@ function App() {
           </Button>
         </Flex>
         <Box mt={10}>
+          {colors.length === 0 ? (
+            <Box>
+              <Box>Mobile friendly version coming soon.</Box>
+              <Box>
+                Check out the{" "}
+                <Link
+                  color="blue.500"
+                  style={{ textDecoration: "underline" }}
+                  href="https://github.com/anselbrandt/color-palette/tree/master/src"
+                >
+                  code
+                </Link>
+              </Box>
+            </Box>
+          ) : null}
           {colors.length > 0
             ? colors.map((color: any) => (
                 <Colorbar
